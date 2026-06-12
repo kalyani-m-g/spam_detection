@@ -149,6 +149,7 @@ if st.button("🔍 Analyze Message"):
         transformed = vectorizer.transform([message])
 
         prediction = model.predict(transformed)[0]
+        st.write("Prediction Value:", prediction)
 
         st.markdown("---")
 
