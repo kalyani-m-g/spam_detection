@@ -140,22 +140,27 @@ message = st.text_area(
 
 # ---------------- PREDICTION ---------------- #
 
+# ---------------- PREDICTION ---------------- #
+
 if st.button("🔍 Analyze Message"):
 
     if message.strip() == "":
         st.warning("Please enter a message.")
+
     else:
 
         transformed = vectorizer.transform([message])
 
         prediction = model.predict(transformed)[0]
+
         st.write("Prediction Value:", prediction)
 
         st.markdown("---")
 
         st.subheader("📊 Analysis Result")
 
-        if prediction == 1:
+        # SPAM MESSAGE
+        if str(prediction).lower() == "spam":
 
             st.markdown("""
             <div class="result-card spam">
@@ -176,6 +181,7 @@ Potential Indicators:
 • Unknown sender behaviour
 """)
 
+        # SAFE MESSAGE
         else:
 
             st.markdown("""
@@ -195,7 +201,6 @@ Message Assessment:
 • Appears legitimate
 • Safe communication pattern
 """)
-
 # ---------------- PROJECT INFO ---------------- #
 
 st.markdown("---")
