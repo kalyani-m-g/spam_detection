@@ -224,10 +224,7 @@ The system converts text messages into numerical features using TF-IDF Vectoriza
 
 SMS Spam Collection Dataset
 
-### Developer
 
-Kalyani M G
-""")
 
 st.markdown("---")
 
