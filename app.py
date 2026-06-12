@@ -226,7 +226,7 @@ SMS Spam Collection Dataset
 
 
 
-st.markdown("---")
+
 
 st.caption(
     "© 2026 Smart SMS Spam Detector | Developed by Kalyani M G"
