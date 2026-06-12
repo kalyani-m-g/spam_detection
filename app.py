@@ -1,124 +1,235 @@
 import streamlit as st
-import torch
 import joblib
-
-from transformers import AutoTokenizer
-from transformers import AutoModelForSequenceClassification
 
 # ---------------- PAGE CONFIG ---------------- #
 
 st.set_page_config(
-    page_title="Movie Genre Classifier",
-    page_icon="🎬",
+    page_title="SMS Spam Detector",
+    page_icon="📩",
     layout="wide"
 )
 
 # ---------------- LOAD MODEL ---------------- #
 
-MODEL_NAME = "kalyani-m-g/movie-genre-classifier"
+model = joblib.load("svm_spam_classifier.pkl")
+vectorizer = joblib.load("tfidf_vectorizer.pkl")
 
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+# ---------------- CSS ---------------- #
 
-model = AutoModelForSequenceClassification.from_pretrained(
-    MODEL_NAME
-)
+st.markdown("""
+<style>
 
-label_encoder = joblib.load("label_encoder.pkl")
+.main {
+    background-color: #F8FAFC;
+}
+
+.result-card {
+    padding: 25px;
+    border-radius: 15px;
+    margin-top: 15px;
+    color: white;
+}
+
+.spam {
+    background: linear-gradient(90deg,#DC2626,#EF4444);
+}
+
+.safe {
+    background: linear-gradient(90deg,#059669,#10B981);
+}
+
+.stButton > button {
+    width: 100%;
+    height: 60px;
+    border-radius: 12px;
+    background: linear-gradient(90deg,#2563EB,#7C3AED);
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    border: none;
+}
+
+.stButton > button:hover {
+    transform: scale(1.02);
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# ---------------- SIDEBAR ---------------- #
+
+with st.sidebar:
+
+    st.title("📩 Spam Detector")
+
+    st.info("""
+Detect whether an SMS message is Spam or Ham (Safe)
+using Machine Learning and NLP.
+""")
+
+    st.markdown("""
+### Features
+
+✅ TF-IDF Vectorization
+
+✅ Support Vector Machine (SVM)
+
+✅ Real-time Message Analysis
+
+✅ Spam Detection Dashboard
+""")
+
+    st.markdown("---")
+
+    st.write("👩‍💻 Developed by")
+    st.write("**Kalyani M G**")
 
 # ---------------- HEADER ---------------- #
 
 st.markdown("""
 <h1 style='text-align:center;color:#7C3AED;'>
-🎬 Movie Genre Classification
+📩 Smart SMS Spam Detector
 </h1>
 
 <p style='text-align:center;font-size:18px;color:gray;'>
-AI Powered Movie Genre Prediction using DistilBERT
+Machine Learning Powered Message Classification
 </p>
 """, unsafe_allow_html=True)
 
 st.markdown("---")
 
+# ---------------- EXAMPLES ---------------- #
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.info("""
+Example Spam:
+
+Congratulations!
+
+You have won ₹50,000.
+
+Click here now to claim your reward.
+""")
+
+with col2:
+    st.info("""
+Example Safe Message:
+
+Hi Kalyani,
+
+Are we meeting tomorrow at 10 AM for the project discussion?
+""")
+
 # ---------------- INPUT ---------------- #
 
-st.subheader("📝 Enter Movie Plot")
+st.subheader("✉️ Enter SMS Message")
 
-plot = st.text_area(
+message = st.text_area(
     "",
-    height=250,
-    placeholder="Paste a movie description or plot summary..."
+    height=220,
+    placeholder="Type or paste a message here..."
 )
 
-# ---------------- PREDICT ---------------- #
+# ---------------- PREDICTION ---------------- #
 
-if st.button("🎯 Predict Genre"):
+if st.button("🔍 Analyze Message"):
 
-    if plot.strip() == "":
-        st.warning("Please enter a movie plot.")
+    if message.strip() == "":
+        st.warning("Please enter a message.")
+
     else:
 
-        inputs = tokenizer(
-            plot,
-            return_tensors="pt",
-            truncation=True,
-            padding=True,
-            max_length=256
-        )
+        transformed = vectorizer.transform([message])
 
-        with torch.no_grad():
-            outputs = model(**inputs)
-
-        prediction = torch.argmax(
-            outputs.logits,
-            dim=1
-        ).item()
-
-        genre = label_encoder.inverse_transform(
-            [prediction]
-        )[0]
-
-        confidence = torch.softmax(
-            outputs.logits,
-            dim=1
-        )[0][prediction].item()
+        prediction = model.predict(transformed)[0]
 
         st.markdown("---")
 
-        st.success(
-            f"🎭 Predicted Genre: {genre}"
-        )
+        st.subheader("📊 Analysis Result")
 
-        st.metric(
-            "Confidence Score",
-            f"{confidence*100:.2f}%"
-        )
+        # Handles both numeric and text labels
+        if str(prediction).lower() in ["spam", "1"]:
 
-# ---------------- EXAMPLES ---------------- #
+            st.markdown("""
+            <div class="result-card spam">
+                <h2>🚨 SPAM DETECTED</h2>
+                <p>
+                This message contains patterns commonly associated
+                with spam, promotions or fraudulent communication.
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            st.error("""
+Potential Indicators:
+
+• Suspicious offers
+
+• Urgent action requests
+
+• Promotional content
+
+• Unknown sender behaviour
+""")
+
+        else:
+
+            st.markdown("""
+            <div class="result-card safe">
+                <h2>✅ SAFE MESSAGE</h2>
+                <p>
+                This message appears to be a legitimate personal
+                or business communication.
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            st.success("""
+Message Assessment:
+
+• No major spam indicators detected
+
+• Appears legitimate
+
+• Safe communication pattern
+""")
+
+# ---------------- PROJECT INFO ---------------- #
 
 st.markdown("---")
 
-st.subheader("🎞 Example Plots")
+with st.expander("📖 View Project Information"):
 
-st.info("""
-A young wizard discovers magical powers and
-attends a school of wizardry while battling
-dark forces.
+    st.write("""
+### Smart SMS Spam Detector
+
+This application uses Natural Language Processing (NLP)
+and Machine Learning to classify SMS messages as Spam or Ham.
+
+### Technologies Used
+
+- Python
+- Streamlit
+- Scikit-Learn
+- TF-IDF Vectorization
+- Support Vector Machine (SVM)
+
+### Features
+
+- Real-Time Spam Detection
+- Interactive Dashboard
+- NLP-Based Text Analysis
+- User-Friendly Interface
+
+### Developer
+
+Kalyani M G
 """)
-
-st.info("""
-Two detectives investigate a mysterious murder
-that leads them into a dangerous criminal conspiracy.
-""")
-
-st.info("""
-A group of astronauts travel through a wormhole
-to save humanity from extinction.
-""")
-
-# ---------------- FOOTER ---------------- #
 
 st.markdown("---")
 
 st.caption(
-    "Movie Genre Classification System | Developed by Kalyani M G"
+    "© 2026 Smart SMS Spam Detector | Developed by Kalyani M G"
 )
