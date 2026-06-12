@@ -115,18 +115,7 @@ st.markdown("---")
 
 # ---------------- DASHBOARD CARDS ---------------- #
 
-c1, c2, c3 = st.columns(3)
 
-with c1:
-    st.metric("Model", "Linear SVM")
-
-with c2:
-    st.metric("Technique", "NLP")
-
-with c3:
-    st.metric("Status", "Active")
-
-st.markdown("---")
 
 # ---------------- INPUT ---------------- #
 
